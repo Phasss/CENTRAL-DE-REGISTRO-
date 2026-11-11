@@ -214,9 +214,9 @@
     <p class="lead">História, cultura, sabores e lugares da capital pernambucana. Teste seus conhecimentos!</p>
 
     <div class="facts">
-      <div class="fact"><b id="totalQ">20</b>perguntas</div>
+      <div class="fact"><b id="totalQ">5</b>perguntas</div>
       <div class="fact"><b>5</b>alternativas</div>
-      <div class="fact"><b>~5</b>minutos</div>
+      <div class="fact"><b>~2</b>minutos</div>
     </div>
 
     <div class="spacer"></div>
@@ -232,7 +232,7 @@
         <div class="brand"><b>Quiz Recife</b>Observatório de Turismo</div>
         <div class="score-pill"><span class="dot"></span><span id="scoreNow">0</span> acertos</div>
       </div>
-      <div class="progress-meta"><span id="progText">Pergunta 1 de 20</span><span id="progPct">0%</span></div>
+      <div class="progress-meta"><span id="progText">Pergunta 1 de 5</span><span id="progPct">0%</span></div>
       <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progBar"><i id="progFill"></i></div>
     </header>
 
@@ -257,7 +257,7 @@
           <circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="url(#grad)" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition: stroke-dashoffset 1s ease .2s"/>
           <defs><linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#88beea"/><stop offset="1" stop-color="#91c3b0"/></linearGradient></defs>
         </svg>
-        <div class="val"><div><b id="finalScore">0</b><small id="finalOf">de 20 acertos</small></div></div>
+        <div class="val"><div><b id="finalScore">0</b><small id="finalOf">de 5 acertos</small></div></div>
       </div>
       <h2 id="resTitle">Muito bem!</h2>
       <p id="resMsg"></p>
@@ -292,7 +292,7 @@
 </svg>
 
 <script>
-const PERGUNTAS = [
+const BANCO = [
   { q: "Que animal aparece na bandeira do Recife?",
     o: ["Capivara do Capibaribe", "Jacaré de Apipucos", "Garça do mangue", "Leão Neerlandês", "Pomba da paz"], r: 3 },
   { q: "Em 1827, o Recife passou a ser oficialmente a capital de Pernambuco. Qual cidade exercia essa função anteriormente?",
@@ -336,7 +336,29 @@ const PERGUNTAS = [
 ];
 
 const LETRAS = ["A", "B", "C", "D", "E"];
-const TOTAL = PERGUNTAS.length;
+const POR_PARTIDA = 5;
+const TOTAL = POR_PARTIDA;
+let PERGUNTAS = [];
+
+// Baralho com as perguntas do banco: cada partida tira as próximas 5,
+// sem repetir até todas terem saído; depois embaralha de novo.
+function embaralhar(a) {
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function sortearPartida() {
+  let deck = [];
+  try { deck = JSON.parse(storeGet("quizRecifeDeck") || "[]"); } catch (e) {}
+  deck = deck.filter(i => Number.isInteger(i) && i >= 0 && i < BANCO.length);
+  if (deck.length < POR_PARTIDA) {
+    const novo = embaralhar(BANCO.map((_, i) => i).filter(i => !deck.includes(i)));
+    deck = deck.concat(novo);
+    if (deck.length < POR_PARTIDA) deck = embaralhar(BANCO.map((_, i) => i));
+  }
+  const escolhidas = deck.slice(0, POR_PARTIDA);
+  storeSet("quizRecifeDeck", JSON.stringify(deck.slice(POR_PARTIDA)));
+  return escolhidas.map(i => BANCO[i]);
+}
 const $ = (id) => document.getElementById(id);
 const CHECK = '<svg class="mark ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
 const CROSS = '<svg class="mark no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -358,6 +380,7 @@ function mostrarRecorde() {
 
 function iniciar() {
   atual = 0; acertos = 0; respostas = [];
+  PERGUNTAS = sortearPartida();
   mostrar("quiz");
   renderPergunta();
 }

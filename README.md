@@ -1,6 +1,6 @@
 # Quiz Recife — Observatório de Turismo do Recife
 
-Quiz de 20 perguntas sobre história, cultura e turismo do Recife, com layout pensado para celulares e a identidade visual do Observatório de Turismo do Recife.
+Quiz sobre história, cultura e turismo do Recife, com layout pensado para celulares e a identidade visual do Observatório de Turismo do Recife.
 
 ## Como usar
 
@@ -14,4 +14,4 @@ Quiz de 20 perguntas sobre história, cultura e turismo do Recife, com layout pe
 
 ## Editar perguntas
 
-As perguntas ficam no array `PERGUNTAS` dentro do `index.html`. Cada item tem o texto (`q`), as alternativas (`o`) e o índice da resposta certa (`r`, começando em 0: A=0, B=1, C=2, D=3, E=4).
+As perguntas ficam no array `BANCO` dentro do `index.html`. Cada item tem o texto (`q`), as alternativas (`o`) e o índice da resposta certa (`r`, começando em 0: A=0, B=1, C=2, D=3, E=4). Para mudar a quantidade por partida, altere `POR_PARTIDA`.
