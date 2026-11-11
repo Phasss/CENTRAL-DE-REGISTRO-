@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#343e6b">
+<meta name="description" content="Quiz Recife — teste seus conhecimentos sobre a cidade. Observatório de Turismo do Recife.">
+<title>Quiz Recife</title>
+<link rel="icon" type="image/png" href="assets/simbolo.png">
+<link rel="apple-touch-icon" href="assets/simbolo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #343e6b;
+    --navy-deep: #262e52;
+    --mint: #91c3b0;
+    --mint-soft: #e3f0eb;
+    --mint-ink: #3f8a72;
+    --sky: #88beea;
+    --sky-soft: #e4f1fb;
+    --bg: #f4f7f9;
+    --card: #ffffff;
+    --ink: #343e6b;
+    --ink-soft: #5d6690;
+    --line: #dfe4ee;
+    --ok: #2f9e74;
+    --ok-soft: #dcf3ea;
+    --bad: #d2555a;
+    --bad-soft: #fbe3e4;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; }
+
+  .app {
+    min-height: 100dvh;
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+  .screen { display: none; flex: 1; flex-direction: column; }
+  .screen.active { display: flex; animation: fade .35s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- Tela inicial ---------- */
+  #inicio {
+    background: var(--card);
+    padding: max(32px, env(safe-area-inset-top)) 24px max(28px, env(safe-area-inset-bottom));
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .petals {
+    position: absolute; inset: auto -60px -60px auto; width: 220px; height: 220px;
+    opacity: .12; pointer-events: none;
+  }
+  .petals.top { inset: -70px auto auto -70px; transform: rotate(30deg); }
+  #inicio .logo { width: min(260px, 72%); margin: 24px auto 8px; display: block; }
+  .tag {
+    display: inline-block; margin-top: 28px; padding: 6px 14px;
+    background: var(--mint-soft); color: var(--navy);
+    border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  }
+  #inicio h1 {
+    font-size: clamp(34px, 10vw, 44px); font-weight: 900; line-height: 1.05;
+    margin: 14px 0 12px; letter-spacing: -.01em;
+  }
+  #inicio h1 span { color: var(--navy); background: linear-gradient(transparent 62%, var(--mint) 62%, var(--mint) 92%, transparent 92%); padding: 0 4px; }
+  #inicio p.lead { color: var(--ink-soft); font-size: 16px; line-height: 1.5; margin: 0 auto 28px; max-width: 34ch; font-weight: 500; }
+  .facts { display: flex; gap: 10px; justify-content: center; margin-bottom: 28px; }
+  .fact {
+    flex: 1; max-width: 120px; padding: 12px 8px; border-radius: 14px;
+    background: var(--bg); font-size: 12px; color: var(--ink-soft); font-weight: 600;
+  }
+  .fact b { display: block; font-size: 22px; color: var(--navy); font-weight: 800; }
+  .best { font-size: 13px; color: var(--ink-soft); margin-top: 14px; min-height: 1em; font-weight: 600; }
+  .spacer { flex: 1; }
+
+  .btn {
+    display: block; width: 100%; border: 0; cursor: pointer;
+    padding: 18px 20px; border-radius: 14px;
+    background: var(--navy); color: #fff;
+    font-size: 17px; font-weight: 800; letter-spacing: .01em;
+    box-shadow: 0 6px 0 var(--navy-deep);
+    transition: transform .1s, box-shadow .1s, opacity .2s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--navy-deep); }
+  .btn.ghost { background: transparent; color: var(--navy); box-shadow: none; border: 2px solid var(--line); }
+  .btn.ghost:active { transform: none; background: var(--card); }
+  .btn:disabled { opacity: .35; pointer-events: none; }
+
+  /* ---------- Cabeçalho do quiz ---------- */
+  .topbar {
+    background: var(--navy); color: #fff;
+    padding: max(14px, env(safe-area-inset-top)) 18px 22px;
+    border-radius: 0 0 26px 26px;
+    position: sticky; top: 0; z-index: 2;
+  }
+  .topbar-row { display: flex; align-items: center; gap: 12px; }
+  .topbar img { width: 38px; height: 38px; flex: none; }
+  .topbar .brand { font-size: 11px; line-height: 1.2; font-weight: 600; opacity: .85; }
+  .topbar .brand b { display: block; font-size: 14px; font-weight: 800; opacity: 1; }
+  .score-pill {
+    margin-left: auto; background: rgba(255,255,255,.12); border-radius: 999px;
+    padding: 7px 12px; font-size: 13px; font-weight: 700; white-space: nowrap;
+  }
+  .score-pill .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--mint); margin-right: 6px; vertical-align: 1px; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin: 18px 0 8px; opacity: .9; }
+  .progress { height: 8px; background: rgba(255,255,255,.15); border-radius: 99px; overflow: hidden; }
+  .progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--sky), var(--mint)); border-radius: 99px; transition: width .4s ease; }
+
+  /* ---------- Pergunta ---------- */
+  .body { padding: 22px 16px max(20px, env(safe-area-inset-bottom)); flex: 1; display: flex; flex-direction: column; }
+  .qnum { font-size: 13px; font-weight: 800; color: var(--mint-ink); letter-spacing: .08em; text-transform: uppercase; }
+  .question { font-size: 20px; line-height: 1.4; font-weight: 700; margin: 8px 0 20px; text-wrap: pretty; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    padding: 14px 14px; min-height: 60px;
+    background: var(--card); border: 2px solid var(--line); border-radius: 14px;
+    font-size: 16px; font-weight: 600; line-height: 1.3; cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+  }
+  .opt:active { transform: scale(.985); }
+  .opt .letter {
+    flex: none; width: 34px; height: 34px; border-radius: 10px;
+    display: grid; place-items: center; font-weight: 800; font-size: 15px;
+    background: var(--sky-soft); color: var(--navy);
+    transition: background .15s, color .15s;
+  }
+  .opt .mark { margin-left: auto; flex: none; width: 22px; height: 22px; display: none; }
+  .options.locked .opt { cursor: default; }
+  .options.locked .opt:active { transform: none; }
+  .opt.correct { border-color: var(--ok); background: var(--ok-soft); }
+  .opt.correct .letter { background: var(--ok); color: #fff; }
+  .opt.correct .mark.ok { display: block; color: var(--ok); }
+  .opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+  .opt.wrong .letter { background: var(--bad); color: #fff; }
+  .opt.wrong .mark.no { display: block; color: var(--bad); }
+  .opt.dim { opacity: .5; }
+  .opt.correct.reveal { animation: pulse .5s ease; }
+  @keyframes pulse { 50% { transform: scale(1.02); } }
+  .opt.wrong { animation: shake .35s ease; }
+  @keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+  .feedback {
+    margin-top: 16px; padding: 14px 16px; border-radius: 14px;
+    font-size: 15px; font-weight: 700; display: none; line-height: 1.4;
+  }
+  .feedback.show { display: block; }
+  .feedback.ok { background: var(--ok-soft); color: #1d7253; }
+  .feedback.no { background: var(--bad-soft); color: #a83a3f; }
+  .feedback span { font-weight: 600; display: block; margin-top: 2px; }
+  .actions { margin-top: auto; padding-top: 20px; }
+
+  /* ---------- Resultado ---------- */
+  #resultado .hero {
+    background: var(--navy); color: #fff; text-align: center;
+    padding: max(28px, env(safe-area-inset-top)) 24px 34px;
+    border-radius: 0 0 30px 30px;
+  }
+  #resultado .hero img { width: 150px; margin-bottom: 18px; }
+  .ring { width: 168px; height: 168px; margin: 0 auto 14px; position: relative; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring .val { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .ring .val b { font-size: 46px; font-weight: 900; line-height: 1; display: block; }
+  .ring .val small { font-size: 13px; font-weight: 600; opacity: .8; }
+  #resultado h2 { font-size: 24px; font-weight: 900; margin: 6px 0 6px; }
+  #resultado .hero p { margin: 0 auto; font-size: 15px; opacity: .85; max-width: 32ch; line-height: 1.45; font-weight: 500; }
+  .review-title { font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin: 4px 0 12px; }
+  .review { list-style: none; padding: 0; margin: 0 0 22px; display: flex; flex-direction: column; gap: 8px; }
+  .review li {
+    background: var(--card); border-radius: 12px; padding: 12px 14px;
+    display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.4;
+    border-left: 4px solid var(--ok);
+  }
+  .review li.miss { border-left-color: var(--bad); }
+  .review .n { font-weight: 800; color: var(--ink-soft); min-width: 22px; }
+  .review .q { font-weight: 600; }
+  .review .a { display: block; margin-top: 4px; font-weight: 700; color: var(--ok); }
+  .review li.miss .a { color: var(--ink); }
+  .review .yours { display: block; font-weight: 600; color: var(--bad); margin-top: 2px; }
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+
+  footer { text-align: center; font-size: 11px; color: var(--ink-soft); padding: 18px 16px max(18px, env(safe-area-inset-bottom)); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Tela inicial -->
+  <section class="screen active" id="inicio" aria-labelledby="titulo">
+    <svg class="petals top" viewBox="0 0 100 100" aria-hidden="true"><use href="#petal-set"/></svg>
+    <svg class="petals" viewBox="0 0 100 100" aria-hidden="true"><use href="#petal-set"/></svg>
+
+    <img class="logo" src="assets/logo.png" alt="Observatório de Turismo do Recife">
+    <div><span class="tag">Quiz</span></div>
+    <h1 id="titulo">Quanto você conhece o <span>Recife</span>?</h1>
+    <p class="lead">História, cultura, sabores e lugares da capital pernambucana. Teste seus conhecimentos!</p>
+
+    <div class="facts">
+      <div class="fact"><b id="totalQ">20</b>perguntas</div>
+      <div class="fact"><b>5</b>alternativas</div>
+      <div class="fact"><b>~5</b>minutos</div>
+    </div>
+
+    <div class="spacer"></div>
+    <button class="btn" id="btnStart" type="button">Começar o quiz</button>
+    <div class="best" id="best"></div>
+  </section>
+
+  <!-- Pergunta -->
+  <section class="screen" id="quiz" aria-live="polite">
+    <header class="topbar">
+      <div class="topbar-row">
+        <img src="assets/simbolo.png" alt="">
+        <div class="brand"><b>Quiz Recife</b>Observatório de Turismo</div>
+        <div class="score-pill"><span class="dot"></span><span id="scoreNow">0</span> acertos</div>
+      </div>
+      <div class="progress-meta"><span id="progText">Pergunta 1 de 20</span><span id="progPct">0%</span></div>
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progBar"><i id="progFill"></i></div>
+    </header>
+
+    <div class="body">
+      <div class="qnum" id="qnum">Pergunta 1</div>
+      <h2 class="question" id="question"></h2>
+      <div class="options" id="options" role="group" aria-labelledby="question"></div>
+      <div class="feedback" id="feedback" role="status"></div>
+      <div class="actions">
+        <button class="btn" id="btnNext" type="button" disabled>Próxima pergunta</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resultado -->
+  <section class="screen" id="resultado">
+    <div class="hero">
+      <img src="assets/logo-branco.png" alt="Observatório de Turismo do Recife">
+      <div class="ring">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="12"/>
+          <circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="url(#grad)" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition: stroke-dashoffset 1s ease .2s"/>
+          <defs><linearGradient id="grad" x1="0" x2="1"><stop offset="0" stop-color="#88beea"/><stop offset="1" stop-color="#91c3b0"/></linearGradient></defs>
+        </svg>
+        <div class="val"><div><b id="finalScore">0</b><small id="finalOf">de 20 acertos</small></div></div>
+      </div>
+      <h2 id="resTitle">Muito bem!</h2>
+      <p id="resMsg"></p>
+    </div>
+
+    <div class="body">
+      <div class="stack" style="margin-bottom:26px">
+        <button class="btn" id="btnAgain" type="button">Jogar novamente</button>
+        <button class="btn ghost" id="btnShare" type="button">Compartilhar resultado</button>
+      </div>
+      <div class="review-title">Gabarito</div>
+      <ol class="review" id="review"></ol>
+    </div>
+    <footer>Observatório de Turismo do Recife</footer>
+  </section>
+</div>
+
+<!-- Pétalas decorativas inspiradas no símbolo -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="petal-set">
+      <path d="M50 50 L20 8 Q40 2 58 6 Z" fill="#88beea"/>
+      <path d="M50 50 L92 20 Q98 40 94 58 Z" fill="#91c3b0"/>
+      <path d="M50 50 L80 92 Q60 98 42 94 Z" fill="#88beea"/>
+      <path d="M50 50 L8 80 Q2 60 6 42 Z" fill="#91c3b0"/>
+      <path d="M50 50 L58 6 Q80 10 92 20 Z" fill="#343e6b"/>
+      <path d="M50 50 L94 58 Q90 80 80 92 Z" fill="#343e6b"/>
+      <path d="M50 50 L42 94 Q20 90 8 80 Z" fill="#343e6b"/>
+      <path d="M50 50 L6 42 Q10 20 20 8 Z" fill="#343e6b"/>
+    </g>
+  </defs>
+</svg>
+
+<script>
+const PERGUNTAS = [
+  { q: "Que animal aparece na bandeira do Recife?",
+    o: ["Capivara do Capibaribe", "Jacaré de Apipucos", "Garça do mangue", "Leão Neerlandês", "Pomba da paz"], r: 3 },
+  { q: "Em 1827, o Recife passou a ser oficialmente a capital de Pernambuco. Qual cidade exercia essa função anteriormente?",
+    o: ["Jaboatão dos Guararapes", "Olinda", "Igarassu", "Caruaru", "Itamaracá"], r: 1 },
+  { q: "De acordo com o Guinness Book, qual é o bloco carnavalesco do Recife reconhecido como o maior do mundo?",
+    o: ["Bloco da Saudade", "Cabeça de Touro", "Galo da Madrugada", "Amantes de Glória", "Vassourinhas"], r: 2 },
+  { q: "Qual é o museu instalado no Forte das Cinco Pontas, construção do século XVII erguida pelos holandeses e considerada um importante patrimônio histórico do Recife?",
+    o: ["Museu da Cidade do Recife", "Museu dos Holandeses", "Museu Militar", "Museu das Guerras Mundiais", "Museu do Frevo e do Maracatu"], r: 0 },
+  { q: "No piso da Praça do Marco Zero há uma frase de Cícero Dias escrita. Que frase é essa?",
+    o: ["O baguio é doido", "A República nasceu aqui", "Pernambuco nunca se deixará humilhar", "Eu vi o mundo, ele começava no Recife", "Não vim do lixo pra perder pra basculho"], r: 3 },
+  { q: "Em que rua do Recife funcionou a Casa da Moeda?",
+    o: ["Rua da Moeda", "Rua do Dinheiro", "Rua do Troco", "Rua do Ouvidor", "Rua do Banco"], r: 0 },
+  { q: "Qual é o nome oficial do Forte do Brum, que abriga o Museu Militar?",
+    o: ["Forte do Bruno", "Forte das Brumas de Avalon", "Forte de São João Batista", "Forte do Brumado", "Forte do Buraco"], r: 2 },
+  { q: "Que rua do Recife aparece na lista das ruas mais bonitas do mundo?",
+    o: ["Rua da Aurora", "Avenida Boa Viagem", "Avenida Rui Barbosa", "Rua da Guia", "Rua do Bom Jesus"], r: 4 },
+  { q: "Qual ritmo e dança tradicional de Pernambuco, reconhecido como Patrimônio Cultural Imaterial da Humanidade pela UNESCO, possui um museu dedicado exclusivamente a ele no Recife Antigo?",
+    o: ["Frevo", "Maracatu", "Caboclinho", "Ciranda", "Coco-de-roda"], r: 0 },
+  { q: "Qual é o monumento conhecido por histórias de assombração que, no passado, servia como referência para o balizamento de navios e tinha sepultamentos em seus arredores?",
+    o: ["Cruz do Patrão", "Cruzeiro das Almas", "Cruzeiro de São Francisco", "Torre de Cristal", "Obelisco da Restauração"], r: 0 },
+  { q: "Qual sobremesa pernambucana, reconhecida como Patrimônio Imaterial de Pernambuco, é preparada com banana frita, queijo de manteiga, açúcar e canela?",
+    o: ["Banana Split", "Bananinha", "Cartola", "Banana Queijuda", "Chapéu de sol"], r: 2 },
+  { q: "Qual é a comunidade localizada no Parque dos Manguezais, na Zona Sul do Recife, reconhecida pela criação de camarões, pesca de sururu, plantio de mudas de mangue e realização de passeios turísticos?",
+    o: ["Vila do Marisco", "Conjunto Felipe Camarão", "Residencial do Parque", "Ilha dos Patos", "Ilha de Deus"], r: 4 },
+  { q: "Qual é o jornal fundado em 1825 que permanece em circulação até hoje, sendo considerado o mais antigo da América Latina?",
+    o: ["Diário de Pernambuco", "Jornal do Commercio", "Folha de Pernambuco", "Opinião do Povo", "Diário da Manhã"], r: 0 },
+  { q: "Qual é o mercado público considerado o mais antigo do Brasil e também reconhecido como o primeiro edifício construído em ferro no país?",
+    o: ["Mercado da Boa Vista", "Mercado de Casa Amarela", "Mercado de Areias", "Mercado de São José", "Mercado de Afogados"], r: 3 },
+  { q: "Qual é o personagem do folclore recifense, associado a histórias de assombração, que surgiu durante a ditadura militar e chegou às telas do cinema?",
+    o: ["A Loira do Banheiro", "A Perna Cabeluda", "O Malamé Amarelo", "O Cachorro Louco de Agosto", "O Homem da Cobra"], r: 1 },
+  { q: "Qual é o movimento artístico e musical pernambucano, que teve Chico Science como um de seus principais representantes e influenciou profundamente a cultura de Pernambuco e a música brasileira?",
+    o: ["Maracatu Atômico", "Frevo elétrico", "Manguebeat", "Brega Funk", "Samba de Latada"], r: 2 },
+  { q: "Qual praça do Recife, tombada como patrimônio nacional, foi o primeiro projeto de jardim público de Roberto Burle Marx no Brasil?",
+    o: ["de Casa Forte", "do Marco Zero", "17", "Joaquim Nabuco", "da Torre"], r: 0 },
+  { q: "Qual museu do Recife já foi eleito, em mais de uma ocasião, o melhor museu da América do Sul?",
+    o: ["Museu do Estado", "Instituto Ricardo Brennand", "Museu Murillo La Greca", "Fundação Gilberto Freyre", "Palácio do Comércio"], r: 1 },
+  { q: "Qual é o parque mais antigo do Recife, localizado na região central da cidade e conhecido por seus monumentos artísticos, espaços de lazer, eventos culturais e atividades esportivas?",
+    o: ["Parque Treze de Maio", "Parque da Jaqueira", "Parque Santos Dumont", "Parque dos Manguezais", "Parque das Flores"], r: 0 },
+  { q: "Qual igreja do Recife, integrante do Museu Franciscano de Arte Sacra, é famosa por ter suas paredes e teto inteiramente revestidos de ouro?",
+    o: ["Capela do Divino", "Capela do Damas", "Capela da Jaqueira", "Capela Dourada", "Capela da Graça"], r: 3 },
+];
+
+const LETRAS = ["A", "B", "C", "D", "E"];
+const TOTAL = PERGUNTAS.length;
+const $ = (id) => document.getElementById(id);
+const CHECK = '<svg class="mark ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+const CROSS = '<svg class="mark no" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+let atual = 0, acertos = 0, respostas = [];
+
+function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function storeSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+function mostrar(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.id === id));
+  window.scrollTo(0, 0);
+}
+
+function mostrarRecorde() {
+  const b = storeGet("quizRecifeRecorde");
+  $("best").textContent = b !== null ? `Seu recorde: ${b} de ${TOTAL}` : "";
+}
+
+function iniciar() {
+  atual = 0; acertos = 0; respostas = [];
+  mostrar("quiz");
+  renderPergunta();
+}
+
+function renderPergunta() {
+  const p = PERGUNTAS[atual];
+  $("qnum").textContent = `Pergunta ${atual + 1}`;
+  $("question").textContent = p.q;
+  $("progText").textContent = `Pergunta ${atual + 1} de ${TOTAL}`;
+  const pct = Math.round((atual / TOTAL) * 100);
+  $("progPct").textContent = pct + "%";
+  $("progFill").style.width = pct + "%";
+  $("progBar").setAttribute("aria-valuenow", pct);
+  $("scoreNow").textContent = acertos;
+
+  const box = $("options");
+  box.className = "options";
+  box.innerHTML = "";
+  p.o.forEach((txt, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "opt";
+    b.innerHTML = `<span class="letter">${LETRAS[i]}</span><span class="txt"></span>${CHECK}${CROSS}`;
+    b.querySelector(".txt").textContent = txt;
+    b.addEventListener("click", () => responder(i));
+    box.appendChild(b);
+  });
+
+  const fb = $("feedback");
+  fb.className = "feedback";
+  fb.innerHTML = "";
+  const next = $("btnNext");
+  next.disabled = true;
+  next.textContent = atual === TOTAL - 1 ? "Ver resultado" : "Próxima pergunta";
+}
+
+function responder(i) {
+  const box = $("options");
+  if (box.classList.contains("locked")) return;
+  box.classList.add("locked");
+  const p = PERGUNTAS[atual];
+  const certo = i === p.r;
+  if (certo) acertos++;
+  respostas.push(i);
+
+  [...box.children].forEach((b, j) => {
+    b.setAttribute("aria-disabled", "true");
+    if (j === p.r) b.classList.add("correct", "reveal");
+    else if (j === i) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  const fb = $("feedback");
+  fb.className = "feedback show " + (certo ? "ok" : "no");
+  fb.innerHTML = certo
+    ? "Resposta certa! <span>Arretado!</span>"
+    : `Não foi dessa vez. <span>Resposta: ${LETRAS[p.r]}) ${escapeHtml(p.o[p.r])}</span>`;
+  $("scoreNow").textContent = acertos;
+  if (navigator.vibrate) navigator.vibrate(certo ? 30 : [40, 60, 40]);
+
+  const next = $("btnNext");
+  next.disabled = false;
+  setTimeout(() => next.scrollIntoView({ behavior: "smooth", block: "nearest" }), 150);
+}
+
+function proxima() {
+  atual++;
+  if (atual < TOTAL) { renderPergunta(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  else resultado();
+}
+
+function resultado() {
+  mostrar("resultado");
+  const recorde = Number(storeGet("quizRecifeRecorde") ?? -1);
+  if (acertos > recorde) storeSet("quizRecifeRecorde", String(acertos));
+
+  $("finalScore").textContent = acertos;
+  $("finalOf").textContent = `de ${TOTAL} acertos`;
+  const circ = 326.7;
+  const arc = $("ringArc");
+  arc.style.strokeDashoffset = circ;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    arc.style.strokeDashoffset = circ * (1 - acertos / TOTAL);
+  }));
+
+  const pct = acertos / TOTAL;
+  let t, m;
+  if (pct === 1)      { t = "Recifense de raiz!"; m = "Gabaritou! Você conhece cada canto, história e sabor do Recife."; }
+  else if (pct >= .8) { t = "Arretado!"; m = "Você manja muito do Recife. Falta pouco para gabaritar!"; }
+  else if (pct >= .5) { t = "Muito bem!"; m = "Bom conhecimento da cidade. Que tal explorar mais o Recife e tentar de novo?"; }
+  else if (pct >= .25){ t = "Bora conhecer mais!"; m = "O Recife tem muita história pra contar. Confira o gabarito e jogue de novo."; }
+  else                { t = "Hora de passear!"; m = "Ainda dá tempo de descobrir o Recife. Veja as respostas abaixo e tente outra vez."; }
+  $("resTitle").textContent = t;
+  $("resMsg").textContent = m;
+
+  const ul = $("review");
+  ul.innerHTML = "";
+  PERGUNTAS.forEach((p, i) => {
+    const ok = respostas[i] === p.r;
+    const li = document.createElement("li");
+    if (!ok) li.className = "miss";
+    li.innerHTML = `<span class="n">${i + 1}</span><div><span class="q"></span>
+      <span class="a">${ok ? "✓" : "Certa:"} ${LETRAS[p.r]}) ${escapeHtml(p.o[p.r])}</span>
+      ${ok ? "" : `<span class="yours">Sua: ${LETRAS[respostas[i]]}) ${escapeHtml(p.o[respostas[i]])}</span>`}</div>`;
+    li.querySelector(".q").textContent = p.q;
+    ul.appendChild(li);
+  });
+}
+
+async function compartilhar() {
+  const texto = `Fiz ${acertos} de ${TOTAL} no Quiz Recife do Observatório de Turismo do Recife! Quanto você conhece o Recife?`;
+  const url = location.href.split("#")[0];
+  try {
+    if (navigator.share) { await navigator.share({ title: "Quiz Recife", text: texto, url }); return; }
+    await navigator.clipboard.writeText(`${texto} ${url}`);
+    const b = $("btnShare"); const old = b.textContent;
+    b.textContent = "Copiado!"; setTimeout(() => (b.textContent = old), 1800);
+  } catch (e) {}
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+$("totalQ").textContent = TOTAL;
+$("btnStart").addEventListener("click", iniciar);
+$("btnNext").addEventListener("click", proxima);
+$("btnAgain").addEventListener("click", () => { mostrarRecorde(); iniciar(); });
+$("btnShare").addEventListener("click", compartilhar);
+mostrarRecorde();
+</script>
+</body>
+</html>
